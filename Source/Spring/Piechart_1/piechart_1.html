@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spring MVC. JFreeChart pie chart example</title>
+</head>
+<body>
+<h2>Spring MVC. JFreeChart pie chart example</h2>
+<b>Jsp code:</b>
+<xmp>
+<%@ page language="java" contentType="text/html; charset=UTF-8" session="true" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+     <title>Spring MVC.JFreeChart pie chart example</title>
+   </head>
+ <body>
+   <div>
+      <img src="displayChart" align="left" />
+   </div>
+ </body>
+</html>
+</xmp>
+<b>Spring MVC Controller java code:</b>
+<xmp>
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.general.DefaultPieDataset;
+
+
+@Controller
+public class MyCoolController
+{
+
+    @RequestMapping(value="/displayChart", method = RequestMethod.GET)
+    public void displayChart(HttpServletResponse response) throws Exception 
+    { 
+        JFreeChart chart;
+
+        DefaultPieDataset dataSet = new DefaultPieDataset();
+        dataSet.setValue("Sector 1", 100);
+        dataSet.setValue("Sector 2", 200);
+        dataSet.setValue("Sector 3", 300;
+                    
+        chart = ChartFactory.createPieChart(
+                "Spring MVC.JFreeChart pie chart example", // Title
+                dataSet,                                   // Data
+                true,                                      // Display the legend
+                false,                                     // Display tool tips
+                false                                      // No URLs
+                );
+
+        chart.setBorderVisible(true);
+        try
+        {
+          ChartUtilities.writeChartAsPNG(response.getOutputStream(), chart, 300, 300);
+            response.getOutputStream().flush();
+            response.getOutputStream().close();
+        }
+        catch(IOException ex) 
+        {
+           ex.printStackTrace(); 
+        }
+        
+        return;        
+    }
+   	
+}
+
+
+</xmp>
+
+</body>
+</html>
