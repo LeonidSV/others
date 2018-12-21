@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spring MVC. Using java.awt.Graphics2D example</title>
+</head>
+<body>
+<h2>Spring MVC. Using java.awt.Graphics2D example</h2>
+<b>Jsp code (graphics3.jsp)</b>
+<xmp>
+<%@ page language="java" contentType="text/html; charset=UTF-8" session="true" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+     <title>Spring MVC. Using java.awt.Graphics2D example</title>
+   </head>
+ <body>
+   <div>
+      <img src="displayChart3" align="left" />
+   </div>
+ </body>
+</html>
+</xmp>
+
+<b>Spring MVC java code:</b>
+<xmp>
+
+//ColorBean 
+import java.awt.Color;
+
+public class ColorBean 
+{
+  private int value;
+  private Color color;
+  private double percent;
+
+  public Color getColor()
+  { 
+    return color; 
+  }
+  public void setColor(Color color) 
+  {
+     this.color = color;
+  }
+
+   public int getValue()
+   { 
+     return value; 
+   }
+   public void setValue(int value) 
+   {
+      this.value = value;
+   }
+
+    public double getPercent()
+    { 
+      return percent; 
+    }
+    public void setPercent(double percent) 
+    {
+       this.percent = percent;
+    }
+}
+
+
+// Controller
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+
+import java.awt.RenderingHints;
+import java.awt.Stroke;
+import java.awt.geom.Arc2D;
+import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.imageio.ImageIO;
+
+import javax.servlet.http.HttpServletResponse;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@Controller
+public class GraphicsController3
+{
+
+    
+    @RequestMapping(value="/Graphics3", method = RequestMethod.GET)
+    public ModelAndView Show_Form() throws Exception 
+    { 
+
+       ModelAndView model = new ModelAndView();        
+       model.setViewName("graphics3");
+
+     return model;
+    }
+    
+    @RequestMapping(value = "/displayChart3", method = RequestMethod.GET, produces = "image/png")
+    public @ResponseBody byte[] displayChart2()  
+    {
+        ColorBean colorbean;
+        List<ColorBean> listcolorbean;
+        
+        listcolorbean = new ArrayList<ColorBean>();
+                
+        // piece 1, Green 
+        colorbean = new ColorBean();
+        colorbean.setColor(Color.green);
+        colorbean.setValue(2000);
+        listcolorbean.add(colorbean);
+
+        // piece 2, Blue 
+        colorbean = new ColorBean();
+        colorbean.setColor(Color.blue);
+        colorbean.setValue(2000);
+        listcolorbean.add(colorbean);
+
+        // piece 3, Red 
+        colorbean = new ColorBean();
+        colorbean.setColor(Color.red);
+        colorbean.setValue(20);
+        listcolorbean.add(colorbean);
+       
+    
+        try 
+        {
+
+            // Prepare buffered image.
+            BufferedImage img = createPieImage(listcolorbean);
+
+            // Create a byte array output stream.
+            ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+            // Write to output stream
+            ImageIO.write(img, "png", bao);
+
+            return bao.toByteArray();
+        } catch (IOException e) 
+        {
+            System.out.println(e);
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private BufferedImage createPieImage( List<ColorBean> listcolorbean ) 
+    {
+      double sum;
+      int i;
+      int n_AngleStart;
+      int n_AngleExtent;
+      Arc2D arc;
+            
+      BufferedImage bufferedImage = new BufferedImage(120,120,BufferedImage.TYPE_INT_ARGB);
+      Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
+      g.setPaint(Color.white);
+      g.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
+
+  
+
+
+       // calculate the sum value of field "value" all elements of List 
+        sum = 0.0D;
+        for ( i = 0; i < listcolorbean.size(); i++) 
+        {
+          sum = sum + listcolorbean.get(i).getValue();
+        }
+
+
+  
+        Stroke stroke = new BasicStroke(5/36);  
+        g.translate(1, 1);
+        n_AngleStart = 90;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setStroke(stroke);
+        for ( i = 0; i < listcolorbean.size(); i++) 
+        {
+            
+            n_AngleExtent = (int)  ( 360.0D * listcolorbean.get(i).getValue() / sum )  ;
+            g.setColor(listcolorbean.get(i).getColor());
+            g.fillArc(0,0, bufferedImage.getWidth(), bufferedImage.getHeight(), n_AngleStart, n_AngleExtent);
+            n_AngleStart = n_AngleStart + n_AngleExtent;
+
+        }
+
+      return bufferedImage;
+    }
+
+
+
+
+
+
+
+}
+
+</xmp>
+
+</body>
+</html>
