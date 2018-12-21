@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spring MVC. Using MDBootstrap charts</title>
+</head>
+<body>
+<h2>Spring MVC. Using MDBootstrap charts</h2>
+<b>Jsp code (graphics.jsp) :</b>
+<xmp>
+<!DOCTYPE html>
+<%@ page language="java" contentType="text/html; charset=UTF-8" session="true" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Spring MVC. Using MDBootstrap charts</title>
+    <!-- Bootstrap core CSS -->
+    <link href="resources/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Material Design Bootstrap -->
+    <link href="resources/css/mdb.min.css" rel="stylesheet">
+    <!-- Your custom styles (optional) -->
+    <link href="resources/css/style.css" rel="stylesheet">
+  <!-- Font Awesome -->
+    <link href="resources/css/all.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Start your project here-->
+
+<br>
+<div class="container fluid shadow-sm bg-white rounded w-50 p-3">
+
+   <canvas id="pieChart" style="max-width: 300px; max-heigth: 300px"></canvas>
+
+</div>
+
+
+    <!-- SCRIPTS -->
+    <!-- JQuery -->
+    <script type="text/javascript" src="resources/js/jquery-3.3.1.min.js"></script>
+    <!-- Bootstrap tooltips -->
+    <script type="text/javascript" src="resources/js/popper.min.js"></script>
+    <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="resources/js/bootstrap.min.js"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="resources/js/mdb.min.js"></script>
+
+<script>
+
+$(document).ready(function () 
+{
+//--------------------------begin make pie chart -------------------------------------------------------
+  var cdata = [];
+  var clabels = [];
+  var cbackgroundColor = [];
+  var choverBackgroundColor = [];
+ 
+  $.ajax({
+           async: false,
+           url: "Ajax_Get_Bean", 
+           contentType: 'application/json; charset=utf-8',
+           datatype: 'json',
+           data: '',
+           success: function (msg) 
+           {
+            if (msg != undefined && msg.length > 0) 
+            {
+                for (var i = 0; i < msg.length; i++) 
+                {
+                   cdata [ i ] = parseInt(msg[i].data);
+                  clabels [ i ] = msg[i].labels;
+                  cbackgroundColor [ i ] = msg[i].backgroundColor;
+                  choverBackgroundColor [ i ] = msg[i].hoverBackgroundColor;
+                }
+             }
+          },
+           error: function(jqXHR,error, errorThrown) 
+           {  
+               if(jqXHR.status&&jqXHR.status==400)
+               {
+                    alert(jqXHR.responseText); 
+               }
+               else
+               {
+                   alert(jqXHR.responseText);
+               }
+          }
+        }) ;
+
+
+  var ctxP = document.getElementById("pieChart").getContext('2d');
+  var myPieChart = new Chart(ctxP, {
+      type: 'pie',
+      data: {
+            labels: clabels,
+            datasets: [
+            {
+                data: cdata,
+                backgroundColor: cbackgroundColor,
+                hoverBackgroundColor: choverBackgroundColor
+            }
+        ]
+     },
+     options: {
+        responsive: true
+    }
+  });
+
+ });
+ //-----------------------------END make pie chart--------------------------------------------------
+ </script>
+
+ </body>
+</html>
+</xmp>
+<b>Spring MVC java code:</b>
+<xmp>
+// Bean
+public class Bean 
+{
+    private  String labels;
+    private  String data;
+    private  String backgroundColor;
+    private  String hoverBackgroundColor;
+    
+    public String getData() 
+    {
+      return data;
+    }
+    public void setData(String data) 
+    {
+       this.data = data;
+    }
+
+    public String getBackgroundColor() 
+    {
+      return backgroundColor;
+    }
+    public void setBackgroundColor(String backgroundColor) 
+    {
+       this.backgroundColor = backgroundColor;
+    }
+
+    public String getHoverBackgroundColor() 
+    {
+      return hoverBackgroundColor;
+    }
+    public void setHoverBackgroundColor(String hoverBackgroundColor) 
+    {
+       this.hoverBackgroundColor = hoverBackgroundColor;
+    }
+
+    public String getLabels() 
+    {
+      return labels;
+    }
+    public void setLabels(String labels) 
+    {
+       this.labels = labels;
+    }
+
+
+}
+
+//Controller
+
+@Controller
+public class GraphicsController 
+{
+
+    @RequestMapping(value="/Graphics", method = RequestMethod.GET)
+    public ModelAndView Show_Edit_Form() throws Exception 
+    { 
+
+       ModelAndView model = new ModelAndView();        
+       model.setViewName("graphics");
+
+     return model;
+    }
+
+
+
+       @RequestMapping(method = { RequestMethod.GET }, value = "Ajax_Get_Bean", produces="application/json")
+        public @ResponseBody List<Bean> Ajax_Get_Bean() throws Exception 
+        {
+            List<Bean> out;
+            Bean temp;
+           
+            
+            out = new ArrayList<Bean>();
+  
+  
+            // piece 1, Green (Lime)
+            temp = new Bean();
+            temp.setLabels("Green");
+            temp.setData("100");
+            temp.setBackgroundColor("Lime");
+            temp.setHoverBackgroundColor("Lime");
+            out.add(temp);
+
+            // piece 2, Blue
+            temp = new Bean();
+            temp.setLabels("Blue");
+            temp.setData("50");
+            temp.setBackgroundColor("Blue");
+            temp.setHoverBackgroundColor("Blue");
+            out.add(temp);
+
+
+            // piece 3, Red
+            temp = new Bean();            
+            temp.setLabels("Red");
+            temp.setData("10");
+            temp.setBackgroundColor("Red");
+            temp.setHoverBackgroundColor("Red");
+            out.add(temp);
+         
+            
+            return out;
+        }
+}
+
+
+</xmp>
+
+</body>
+</html>
