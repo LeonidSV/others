@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spring MVC. Spring MVC.Export to Excel file example </title>
+</head>
+<body>
+<h2>Spring MVC. Spring MVC.Export to Excel file example </h2>
+1. Create Excel xlsx file. Select "A1" cell and input value "#F1#". Select "A2" cell and input value "#F2#"... etc.  <br>
+2. Save this xlsx file in your Java Spring MVC project application  folder  ...\WEB-INF\classes\template.xlsx <br>
+3. Download Apache POI jar library files from https://poi.apache.org/download.html and include in your project library path.
+<br>
+Let's create java code. <br>
+<b>Spring MVC Controller java code:</b>
+<xmp>
+@Controller
+public class ExcelCallController 
+{
+	
+    @RequestMapping(value = "/excel", method = RequestMethod.GET)
+    public void excel(HttpServletResponse response,  HttpSession session ) throws IOException, Exception {
+            
+        File tempFile;
+        String fileName; 
+        BufferedInputStream inStream;
+        BufferedOutputStream outStream;
+         
+         tempFile = Excel.Make_Excel();
+
+            
+         response.addHeader("Content-disposition", "attachment;filename="+fileName);
+         response.setContentType("application/xls");
+
+           inStream = new BufferedInputStream(new FileInputStream(tempFile));
+           outStream = new BufferedOutputStream(response.getOutputStream());
+           
+           byte[] buffer = new byte[1024];
+           int bytesRead = 0;
+           while ((bytesRead = inStream.read(buffer)) != -1) 
+           {
+             outStream.write(buffer, 0, bytesRead);
+           }
+           outStream.flush();
+           outStream.close();
+           inStream.close();
+           tempFile.delete();
+          }
+        catch (Exception e) {e.printStackTrace();}
+        finally 
+          {
+              outStream.flush();
+              outStream.close();
+              inStream.close();
+            tempFile.delete(); 
+          };
+    }
+
+
+// Excel.java
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+public class Excel 
+{
+    
+   
+    public static File Make_Excel()
+    {
+        String tmp; 
+        File tempFile;
+        InputStream inputStream;
+        OutputStream outputStream;
+        tmp = null;
+        inputStream ;
+        tempFile;
+        String template1;
+        
+        template1 = "template.xlsx";
+        
+        try {
+           
+            InputStream excellFile2 = Thread.currentThread().getContextClassLoader().getResourceAsStream(template1);
+
+            XSSFWorkbook workbook2 = new XSSFWorkbook(excellFile2);
+            XSSFSheet sheet3;
+            ArrayList list;
+            // fill arraylist from database   
+            list = your_Database.Xls_Select_Data();
+            
+            Iterator ii = list.iterator(); 
+            while (ii.hasNext()) 
+            {
+               // Bean - simple class (getter/setter)  fields f1, f2, f3
+               Bean irow;
+               irow = (Bean) ii.next();
+               sheet3 = workbook2.cloneSheet(0);
+               tmp = Template_Replace(sheet3, irow);
+               workbook2.setSheetName(workbook2.getSheetIndex(sheet3), tmp);
+             }
+            workbook2.removeSheetAt(0);
+          
+
+            tempFile=File.createTempFile("temp_", ".xlsx");
+        
+            
+            if (! tempFile.exists())
+            {
+              System.err.println("Error write to file"+tempFile.toString());
+              // or other code for error 
+            }
+
+            outputStream = new FileOutputStream(tempFile);
+            workbook2.write(outputStream);
+            outputStream.close();
+            
+        }
+        catch (Exception e) {e.printStackTrace();}
+        
+      return (tempFile);
+    }
+
+
+
+  static String Template_Replace(XSSFSheet sheet, Bean irow) 
+  {
+      String sheet_name;
+      Iterator<Row> it = sheet.iterator();
+      //iterate over Excel sheet
+      sheet_name="1";
+      
+      while (it.hasNext()) 
+      {
+          Row row = it.next();
+          Iterator<Cell> cells = row.iterator();
+
+          while (cells.hasNext()) 
+          {
+              Cell cell = cells.next();
+              int cellType = cell.getCellType();
+              if (cellType == Cell.CELL_TYPE_STRING)
+              {    
+                  switch(cell.getStringCellValue()) 
+                  {
+                      case "#F1#":
+                           cell.setCellValue(irow.getf1());
+                          break;
+                      case "#F2#":
+                           cell.setCellValue(irow.getf2());
+                          break;
+                      case "#F3#":
+                           cell.setCellValue(irow.getf3());
+                          break;
+                      default:
+                          break;
+                  }
+              }        
+         }
+     }
+    
+    return(sheet_name);
+  }
+
+
+}
+    
+
+
+
+</xmp>
+
+</body>
+</html>
