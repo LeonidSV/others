@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spring Boot. Two datasource example </title>
+</head>
+<body>
+<h2>Spring Boot. Two datasource example </h2>
+<br>
+There are often situations when an application needs to connect to 2 data sources. For example, Oracle and MS SQL database. How to do it?<br>
+Let's create java code. <br>
+<b>Setup for applications.properties:</b>
+<xmp>
+
+# Settings for the Oracle connection
+oracle.db.url=jdbc:oracle:thin:@10.xx.xx.xx:1521:SID_DB
+oracle.db.username=your_user
+oracle.db.password=your_password
+oracle.db.driverClassName=oracle.jdbcOracleDriver
+
+
+# Settings for the MS SQL connection
+mssql.db.url=jdbc:sqlserver://your_servername:1433;Database=your_db
+mssql.db.username=your_user
+mssql.db.datasource.password=your_password
+mssql.db.driverClassName=driver-class-com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+</xmp>
+
+
+<b>Spring MVC java code:</b>
+<xmp>
+ @Configuration
+public class DatabaseConfig 
+{
+@Autowired
+private Environment env;
+
+@Bean(name = "firstDataSource")
+@ConfigurationProperties("oracle.db")
+@Primary
+
+    public DataSource firstDataSource() {
+        DriverManagerDataSource dataSource  = new DriverManagerDataSource();
+        dataSource.setDriverClassName(env.getProperty("oracle.db.driverClassName"));
+        dataSource.setUrl(env.getProperty("oracle.db.url"));
+        dataSource.setUsername(env.getProperty("oracle.db.username"));
+        dataSource.setPassword(env.getProperty("oracle.db.password"));
+
+        return dataSource;
+    }
+
+
+  
+   @Bean(name = "secondDataSource")
+   @ConfigurationProperties(prefix = "mssql.db")
+    public DataSource secondDataSource() {
+        DriverManagerDataSource dataSource  = new DriverManagerDataSource();
+         dataSource.setDriverClassName(env.getProperty("mssql.db.driverClassName"));
+         dataSource.setUrl(env.getProperty("mssql.db.url"));
+         dataSource.setUsername(env.getProperty("mssql.db.username"));
+         dataSource.setPassword(env.getProperty("mssql.db.password"));
+
+
+        return dataSource;
+    }
+ 
+ 
+   @Bean(name = "jdbcTemplateOne")
+    public JdbcTemplate jdbcTemplateOne(@Qualifier("firstDataSource") DataSource ds1) {
+        return new JdbcTemplate(ds1);
+    }
+
+    @Bean(name = "jdbcTemplateTwo")
+    public JdbcTemplate jdbcTemplateTwo(@Qualifier("secondDataSource") DataSource ds2) {
+        return new JdbcTemplate(ds2);
+    }
+
+
+}
+
+
+
+@Repository
+public class Database 
+{
+   @Autowired
+    @Qualifier("jdbcTemplateOne")
+    private JdbcTemplate jdbcTemplateOne;
+   @Autowired
+    @Qualifier("jdbcTemplateTwo")
+    private JdbcTemplate jdbcTemplateTwo;
+   
+ 
+
+  
+
+   
+  public List<XBean> get_oracle_table() 
+  {
+     String sql = "select p0, p1 from oracle_table";
+ 
+        Object[] params1 = new Object[] {};
+        UniversalMapper mapper1 = new UniversalMapper();
+        
+        list1 = jdbcTemplateOne.query(sql, params1, mapper1);
+       return list1;
+    }
+  
+  
+  
+   public List<XBean> get_mssql_table() 
+  {
+     String sql = "select p0, p1 from mssql_table";
+         List<XBean> list21 = null;
+         
+         
+        Object[] params21 = new Object[] {};
+        UniversalMapper2 mapper21 = new UniversalMapper2();
+        
+        list21 = jdbcTemplateTwo.query(sql, params21, mapper21);
+       return list21;
+    }
+  
+}
+    
+public class UniversalMapper implements RowMapper<XBean>
+{
+
+ @Override
+    public XBean mapRow(ResultSet rs, int rowNum) throws SQLException {
+ 
+        String p0 = rs.getString("p0");
+        String p1 = rs.getString("p1");
+ 
+        return new XBean(p0, p1);
+    }
+    
+}
+
+
+</xmp>
+
+</body>
+</html>
