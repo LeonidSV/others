@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spring MVC. Spring MVC.Export to Excel file example </title>
+</head>
+<body>
+<h2>Spring MVC. Spring MVC.Export to Jasper Report pdf-file example </h2>
+1. Download Jasper Report library (jasperreports-*.jar) and its dependencies files from https://community.jaspersoft.com/project/jasperreports-library and include in your project library path.<br>
+2. Create and compile JasperReports (test.jasper) file. <br>
+2. Save this file in your Java Spring MVC project application  folder  ...\WEB-INF\classes\Reports\test.jasper <br>
+<br>
+Let's create java code. <br>
+<b>Spring MVC Controller java code:</b>
+<xmp>
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperRunManager;
+import main.jdbc.DataAccessObject;
+
+
+
+@Controller
+public class ReportController 
+{
+	
+    @RequestMapping(value = "/Do_Report_Id", method = RequestMethod.GET)
+    public void Make_Report(HttpServletResponse response,  HttpSession session) throws IOException, Exception 
+  {
+            
+        InputStream reportStream;
+        String fileName; 
+        BufferedInputStream inStream = null;
+        BufferedOutputStream outStream = null;
+        String edate = null;
+        String current_report_date = null;
+        String current_report_name = null;
+        Map map;
+        Connection dbConnection;
+        ServletOutputStream servletOutputStream = null;
+
+        // for example, this variable may be passed to the report as incoming parameter
+        edate = (String) session.getAttribute("edate");
+
+        current_report_name = "/Reports/test.jasper";
+
+
+        reportStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(current_report_name);
+
+       try
+       {
+               // get dbConnection value from your database datasource (DataAccessObject)
+              dbConnection = DataAccessObject.getConnection();
+ 
+              // here we pass the parameter to the report. Of course, variable "current_report_date"  was early  defined inside jasper file
+              map = new HashMap();
+              map.put(current_report_date,  edate);
+
+
+              servletOutputStream = response.getOutputStream();
+              
+              response.setContentType( "application/x-pdf" );
+              response.setHeader("Content-disposition", "inline; filename=report.pdf");
+              JasperRunManager.runReportToPdfStream(reportStream, servletOutputStream, map, dbConnection);
+              servletOutputStream.flush();
+              servletOutputStream.close();
+
+          }
+        catch (Exception e) {e.printStackTrace();}
+       
+
+    }
+}
+
+
+
+</xmp>
+
+</body>
+</html>
